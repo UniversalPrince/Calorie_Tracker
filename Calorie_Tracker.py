@@ -1,6 +1,8 @@
 # calorie_tracker.py
 
 import matplotlib.pyplot as plt
+import pandas as pd
+from datetime import datetime
 
 def calculate_calorie_goal():
     print("=== User Profile ===")
@@ -23,13 +25,12 @@ def calculate_calorie_goal():
     print("3. Gain weight")
     goal = int(input("Select your goal (1-3): "))
 
-    # BMR Calculation
     if gender == "Male":
         bmr = 10 * weight + 6.25 * height - 5 * age + 5
     elif gender == "Female":
         bmr = 10 * weight + 6.25 * height - 5 * age - 161
     else:
-        bmr = 10 * weight + 6.25 * height - 5 * age  # Neutral BMR
+        bmr = 10 * weight + 6.25 * height - 5 * age
 
     activity_factors = {1: 1.2, 2: 1.375, 3: 1.55, 4: 1.725}
     calorie_goal = bmr * activity_factors.get(activity, 1.2)
@@ -40,14 +41,12 @@ def calculate_calorie_goal():
         calorie_goal += 300
 
     print(f"\nHi {name}, your daily calorie goal is approximately {int(calorie_goal)} kcal.")
-    return int(calorie_goal)
-
+    return int(calorie_goal), name
 
 def plot_calorie_pie(food_log, calorie_goal):
     labels = [item[0] for item in food_log]
     sizes = [item[1] for item in food_log]
 
-    # Fill the rest of the pie with "Remaining" calories
     remaining = calorie_goal - sum(sizes)
     if remaining > 0:
         labels.append("Remaining")
@@ -61,8 +60,15 @@ def plot_calorie_pie(food_log, calorie_goal):
     plt.tight_layout()
     plt.show()
 
+def export_to_csv(food_log, calorie_goal, username):
+    df = pd.DataFrame(food_log, columns=["Food", "Calories"])
+    df["Date"] = datetime.now().strftime("%Y-%m-%d")
+    df["User"] = username
+    df["Calorie Goal"] = calorie_goal
+    df.to_csv("calorie_log.csv", index=False)
+    print("\n✅ Data exported to calorie_log.csv — ready for Power BI.")
 
-def food_calorie_tracker(calorie_goal):
+def food_calorie_tracker(calorie_goal, username):
     total_calories = 0
     food_log = []
 
@@ -85,10 +91,10 @@ def food_calorie_tracker(calorie_goal):
     print(f"Total Calories Consumed: {total_calories} kcal")
     print(f"Remaining Calories: {calorie_goal - total_calories} kcal")
 
-    # Show Pie Chart
     plot_calorie_pie(food_log, calorie_goal)
-
+    export_to_csv(food_log, calorie_goal, username)
 
 if __name__ == "__main__":
-    goal = calculate_calorie_goal()
-    food_calorie_tracker(goal)
+    goal, user = calculate_calorie_goal()
+    food_calorie_tracker(goal, user)
+
